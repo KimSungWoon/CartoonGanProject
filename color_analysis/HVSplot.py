@@ -10,31 +10,32 @@ import os
 import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
+#HSV 색상 데이터를 불러온다.
+data = np.loadtxt('./HVS_data/pyonyo_RGB.csv', unpack=True, delimiter=',', skiprows=1)  #
 
-data = np.loadtxt('./HVS_data/pyonyo_HSV.csv', unpack=True, delimiter=',', skiprows=1)  #
-X = data[0]
-Y = data[1]
-Z = data[2]
+# 3차원 그래프를 위해 X Y Z에 각 데이터를 설정한다. 
+X = data[0] #R(빨간)
+Y = data[1] #G(초록)
+Z = data[2] #B(블루)
 
-def plot_3d_hist(img, bin_size, model = "rgb"):
-
+def plot_3d_hist(img, bin_size, model = "hvs"):
     h, w, num_channels = img.shape
-
+    
     if isinstance(img, np.uint8):
-        max_range = 255
+        max_range = 255 # 색상 값이 256 이라 최대값을 설정한다.
     elif isinstance(img, np.uint16):
         max_range = 65535
     elif isinstance(img, np.float):
-        max_range = 1.0
+        max_range = 1.0 # 간격을 1로 설정한다.
     else:
         max_range = np.amax(img)
 
-    # generate indices and histogram
+    #비어있는 인덱스와 히스토그램을 생성한다.
     ranges = ([0, max_range], [0, max_range], [0, max_range])
     bin_sizes = (bin_size, bin_size, bin_size)
     bin_range = np.arange(bin_size)
 
-    # I don't know why this mesh is ordered this way, but it works with the test
+    #
     # images in BGR
     ch2, ch1, ch3 = np.meshgrid(bin_range, bin_range, bin_range)
 
@@ -46,14 +47,14 @@ def plot_3d_hist(img, bin_size, model = "rgb"):
     hist = hist.ravel()
     ch3, ch2, ch1, hist = ch3[hist>0], ch2[hist>0], ch1[hist>0], hist[hist>0]
 
-    # map histogram amounts to marker sizes
+    # 히스토그램에 찍히는 점의 크기를 설정한다.
     marker_sizes = [1, 5, 10, 16, 25]
     cut_size = int(np.ceil(hist.size/len(marker_sizes)))
     cuts = list(itertools.islice(sorted(hist), cut_size, None, cut_size))
     assign_marker_size = lambda val : marker_sizes[bisect.bisect(cuts, val)]
     hist_marker_sizes = list(map(assign_marker_size, hist))
 
-    # colors from the image
+    # RGB 값을
     if "rgb" == model:
         colors = [f'rgb({ch3[i]}, {ch2[i]}, {ch1[i]})' for i in range(len(hist))]
         labels = ("red (x)", "green (y)", "blue (z)")
@@ -107,7 +108,7 @@ def main(filepath = os.path.expanduser("~/Downloads/111111111.html")):
     #pio.write_html(plot_3d_hist(img_channel2, 32, model = "rgb"), file = filepath)  # focus on red
 
     # For HSV, I couldn't understand it
-    pio.write_html(plot_3d_hist(img_channel2, 32, model = "hsv"), file = filepath)
+    pio.write_html(plot_3d_hist(img_channel2, 32, model = "rgv"), file = filepath)
 
 if "__main__" == __name__:
     main()
